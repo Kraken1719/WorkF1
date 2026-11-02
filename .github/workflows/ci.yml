@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-backend:
+    name: Run backend tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      # Stored in Settings > Secrets and variables > Actions (never in the code)
+      DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+      DJANGO_DEBUG: "False"
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Django tests
+        run: python manage.py test
+
+  build-images:
+    name: Build Docker images
+    needs: test-backend
+    runs-on: ubuntu-latest
+    env:
+      # Repository variable used to configure the frontend's API URL
+      VITE_API_URL: ${{ vars.VITE_API_URL }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: docker build -t workflowhub-backend:${{ github.sha }} ./backend
+
+      - name: Build frontend image
+        run: docker build --build-arg VITE_API_URL="$VITE_API_URL" -t workflowhub-frontend:${{ github.sha }} ./frontend
+
+      - name: List built images
+        run: docker images
