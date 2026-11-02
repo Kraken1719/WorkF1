@@ -1,0 +1,40 @@
+version: 2.1
+
+jobs:
+  test-backend:
+    docker:
+      - image: cimg/python:3.12
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: pip install -r backend/requirements.txt
+      - run:
+          name: Run Django tests
+          # DJANGO_SECRET_KEY comes from Project Settings > Environment Variables
+          command: cd backend && python manage.py test
+
+  build-images:
+    # The machine executor is a full VM with Docker pre-installed,
+    # so no setup_remote_docker step is needed
+    machine:
+      image: ubuntu-2204:current
+    steps:
+      - checkout
+      - run:
+          name: Build backend image
+          command: docker build -t workflowhub-backend:${CIRCLE_SHA1} ./backend
+      - run:
+          name: Build frontend image
+          command: docker build --build-arg VITE_API_URL="${VITE_API_URL}" -t workflowhub-frontend:${CIRCLE_SHA1} ./frontend
+      - run:
+          name: List built images
+          command: docker images
+
+workflows:
+  build-and-test:
+    jobs:
+      - test-backend
+      - build-images:
+          requires:
+            - test-backend
