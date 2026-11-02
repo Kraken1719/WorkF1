@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "corsheaders",
     # Project apps
     "accounts",
+    "workflows",
 ]
 
 MIDDLEWARE = [
