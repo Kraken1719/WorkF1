@@ -7,8 +7,30 @@ on:
     branches: [main]
 
 jobs:
+  test-backend:
+    name: Run backend tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Django tests
+        run: python manage.py test
+
   build-images:
     name: Build Docker images
+    needs: test-backend
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
