@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { api } from "./api.js";
 import AuthForm from "./AuthForm.jsx";
+import ItemList from "./ItemList.jsx";
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
@@ -33,7 +34,7 @@ export default function App() {
           </div>
         )}
       </header>
-      {token ? <p>You are logged in.</p> : <AuthForm onLogin={handleLogin} />}
+      {token ? <ItemList token={token} /> : <AuthForm onLogin={handleLogin} />}
     </div>
   );
 }
